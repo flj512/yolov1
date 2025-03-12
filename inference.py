@@ -19,7 +19,8 @@ class YOLOPredictor:
         self.model = YOLOv1(
             grid_size=GRID_SIZE,
             num_boxes=NUM_BOXES,
-            num_classes=NUM_CLASSES
+            num_classes=NUM_CLASSES,
+            pretrained=True
         ).to(self.device)
         
         # Load checkpoint
@@ -190,13 +191,13 @@ class YOLOPredictor:
 def main():
     # Initialize predictor
     predictor = YOLOPredictor(
-        checkpoint_path="checkpoint_epoch_40.pth",
-        conf_threshold=0.1,
+        checkpoint_path="checkpoint_epoch_20.pth",
+        conf_threshold=0.7,
         nms_threshold=0.4
     )
     
     # Example usage for image
-    image_path = "dataset/VOCdevkit/VOC2012/JPEGImages/2008_000021.jpg"
+    image_path = "dataset/VOCdevkit/VOC2012/JPEGImages/2011_003158.jpg"
     result_img, boxes = predictor.predict_image(image_path, save_path="output.jpg")
     
     # Print detection results

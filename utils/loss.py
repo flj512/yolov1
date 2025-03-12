@@ -86,7 +86,8 @@ class YOLOLoss(nn.Module):
         # (N, S, S, 4) -> (N*S*S, 4)
         box_loss = self.mse(
             torch.flatten(box_predictions[..., :4], end_dim=-2),
-            torch.flatten(box_targets[..., :4], end_dim=-2)
+            torch.flatten(box_targets[..., :4], end_dim=-2),
+            batch_size
         )
         
         # ==================== #
@@ -98,7 +99,8 @@ class YOLOLoss(nn.Module):
         # (N*S*S)
         object_loss = self.mse(
             torch.flatten(exists_box * pred_box),
-            torch.flatten(exists_box * obj_target[..., 0:1])
+            torch.flatten(exists_box * obj_target[..., 0:1]),
+            batch_size
         )
         
         # ======================= #
@@ -106,13 +108,15 @@ class YOLOLoss(nn.Module):
         # ======================= #
         
         no_object_loss = self.mse(
-            torch.flatten((1 - exists_box) * box1_pred[..., 4:5], start_dim=1),
-            torch.flatten((1 - exists_box) * obj_target[..., 0:1], start_dim=1)
+            torch.flatten((1 - exists_box) * box1_pred[..., 4:5]),
+            torch.flatten((1 - exists_box) * obj_target[..., 0:1]),
+            batch_size
         )
         
         no_object_loss += self.mse(
-            torch.flatten((1 - exists_box) * box2_pred[..., 4:5], start_dim=1),
-            torch.flatten((1 - exists_box) * obj_target[..., 0:1], start_dim=1)
+            torch.flatten((1 - exists_box) * box2_pred[..., 4:5]),
+            torch.flatten((1 - exists_box) * obj_target[..., 0:1]),
+            batch_size
         )
         
         # ================== #
@@ -122,7 +126,8 @@ class YOLOLoss(nn.Module):
         # (N, S, S, 20) -> (N*S*S, 20)
         class_loss = self.mse(
             torch.flatten(exists_box * class_pred, end_dim=-2),
-            torch.flatten(exists_box * class_target, end_dim=-2)
+            torch.flatten(exists_box * class_target, end_dim=-2),
+            batch_size
         )
         
         # ================== #
@@ -138,5 +143,5 @@ class YOLOLoss(nn.Module):
         
         return loss
     
-    def mse(self, pred, target):
-        return torch.mean((pred - target) ** 2)
+    def mse(self, pred, target, batch_size):
+        return torch.sum((pred - target) ** 2)/batch_size
