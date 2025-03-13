@@ -21,7 +21,7 @@ def train():
     train_dataset = VOCDataset(
         root_dir="dataset/VOCdevkit",
         year="2012",
-        mode="train"
+        mode="train0"
     )
 
     train_loader = DataLoader(
@@ -35,7 +35,7 @@ def train():
     val_dataset = VOCDataset(
         root_dir="dataset/VOCdevkit",
         year="2012",
-        mode="val"
+        mode="val0"
     )
 
     val_loader = DataLoader(
@@ -54,6 +54,9 @@ def train():
         momentum=config.MOMENTUM,
         weight_decay=config.WEIGHT_DECAY
     )
+
+    # Init LR scheduler
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10,20,30], gamma=0.5)
     
     # Create tensorboard summary writer
     writer = SummaryWriter(f"runs/yolov1_{datetime.now().strftime('%Y-%m-%d_%H_%M_%S')}")
@@ -62,19 +65,22 @@ def train():
     for epoch in range(config.NUM_EPOCHS):
         model.train()
         total_loss = 0
-        
+        lastest_lr = scheduler.get_last_lr()[0]
+
+        optimizer.zero_grad()
         for batch_idx, (images, targets) in enumerate(train_loader):
             images = images.to(config.DEVICE)
             targets = targets.to(config.DEVICE)
             
             # Forward pass
             predictions = model(images)
-            loss = criterion(predictions, targets)
+            loss, loss_ration = criterion(predictions, targets)
             
             # Backward pass
-            optimizer.zero_grad()
             loss.backward()
-            optimizer.step()
+            if (batch_idx + 1) % config.PARAM_UPDATE_FREQ == 0:
+                optimizer.step()
+                optimizer.zero_grad()
             
             # Print statistics
             total_loss += loss.item()
@@ -82,11 +88,20 @@ def train():
             if batch_idx % 20 == 0:
                 print(f"Epoch [{epoch+1}/{config.NUM_EPOCHS}], "
                       f"Step [{batch_idx}/{len(train_loader)}], "
-                      f"Loss: {loss.item():.4f}")
-                writer.add_scalar("Loss/train", loss.item(), epoch*len(train_loader) + batch_idx)
-            
+                      f"Loss: {loss.item():.4f}",
+                      f"LR: {lastest_lr}")
+                global_step = epoch*len(train_loader) + batch_idx
+                writer.add_scalar("Loss/train", loss.item(), global_step)
+                writer.add_scalar("LR/latest", lastest_lr, global_step)
+                writer.add_scalar("LossRatio/pos", loss_ration[0].item(), global_step)
+                writer.add_scalar("LossRatio/obj", loss_ration[1].item(), global_step)
+                writer.add_scalar("LossRatio/noobj", loss_ration[2].item(), global_step)
+                writer.add_scalar("LossRatio/class", loss_ration[3].item(), global_step)
+        optimizer.step()
+
         # Calculate validation loss
         val_loss = 0
+        val_ratio = torch.zeros(4)
         if epoch  % 1 == 0:
             model.eval()
             with torch.no_grad():
@@ -94,17 +109,26 @@ def train():
                     images = images.to(config.DEVICE)
                     targets = targets.to(config.DEVICE)
                     predictions = model(images)
-                    loss = criterion(predictions, targets)
+                    loss, loss_ratio = criterion(predictions, targets)
                     
                     val_loss += loss.item()
+                    val_ratio += loss_ratio
             val_loss /= len(val_loader)
+            val_ratio /= len(val_loader)
             print(f"Epoch [{epoch+1}/{config.NUM_EPOCHS}], Average Val Loss: {val_loss:.4f}")
             writer.add_scalar("Loss/val", val_loss, epoch)
+            writer.add_scalar("LossRatio/val_pos", val_ratio[0].item(), epoch)
+            writer.add_scalar("LossRatio/val_obj", val_ratio[1].item(), epoch)
+            writer.add_scalar("LossRatio/val_noobj", val_ratio[2].item(), epoch)
+            writer.add_scalar("LossRatio/val_class", val_ratio[3].item(), epoch)
 
+        scheduler.step()
 
         # Print epoch statistics
         avg_loss = total_loss / len(train_loader)
         print(f"Epoch [{epoch+1}/{config.NUM_EPOCHS}], Average Train Loss: {avg_loss:.4f}")
+        writer.add_scalar("Loss/avg_train", avg_loss, epoch)
+        
         
         # Save checkpoint
         if (epoch + 1) % 10 == 0:

@@ -76,13 +76,17 @@ class YOLOv1(nn.Module):
         # Detection layers
         self.conv_final = nn.Sequential(
             nn.Conv2d(features_out_channel, 1024, 3, padding=1),
+            nn.BatchNorm2d(1024),
             nn.LeakyReLU(0.1),
             nn.Conv2d(1024, 1024, 3, stride=2, padding=1),
+            nn.BatchNorm2d(1024),
             nn.LeakyReLU(0.1),
             
             nn.Conv2d(1024, 1024, 3, padding=1),
+            nn.BatchNorm2d(1024),
             nn.LeakyReLU(0.1),
             nn.Conv2d(1024, self.full_input_depth, 3, padding=1),
+            nn.BatchNorm2d(self.full_input_depth),
             nn.LeakyReLU(0.1),
         )
         

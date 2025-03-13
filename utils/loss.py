@@ -133,15 +133,16 @@ class YOLOLoss(nn.Module):
         # ================== #
         #   TOTAL LOSS      #
         # ================== #
+        l1 = LAMBDA_COORD * box_loss # First two rows of paper
+        l2 = object_loss # Third row
+        l3 = LAMBDA_NOOBJ * no_object_loss  # Fourth row
+        l4 = class_loss # Fifth row
+
+        loss = l1 + l2 + l3 + l4
         
-        loss = (
-            LAMBDA_COORD * box_loss  # First two rows of paper
-            + object_loss  # Third row
-            + LAMBDA_NOOBJ * no_object_loss  # Fourth row
-            + class_loss  # Fifth row
-        )
-        
-        return loss
+        loss_ratio = torch.tensor([l1.item(), l2.item(), l3.item(), l4.item()])/(loss.item() + 1e-6)
+
+        return loss, loss_ratio
     
     def mse(self, pred, target, batch_size):
         return torch.sum((pred - target) ** 2)/batch_size
