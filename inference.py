@@ -192,7 +192,7 @@ def main():
     # Initialize predictor
     predictor = YOLOPredictor(
         checkpoint_path="checkpoint_epoch_30.pth",
-        conf_threshold=0.5,
+        conf_threshold=0.7,
         nms_threshold=0.4
     )
     

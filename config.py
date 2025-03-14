@@ -18,7 +18,7 @@ NUM_CHANNELS = 3  # Input channels
 # Training Parameters
 LEARNING_RATE = 1e-3
 BATCH_SIZE = 16
-PARAM_UPDATE_FREQ = 1 # the number of iterations to accumulate gradients before updating the model
+PARAM_UPDATE_FREQ = 4 # the number of iterations to accumulate gradients before updating the model
 NUM_EPOCHS = 150
 WEIGHT_DECAY = 0.0005
 MOMENTUM = 0.9

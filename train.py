@@ -2,7 +2,7 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from models.yolo import YOLOv1
-from data.voc_dataset import VOCDataset
+from data.voc_dataset import VOCDataset,get_train_transforms
 from utils.loss import YOLOLoss
 import config
 from datetime import datetime
@@ -21,7 +21,8 @@ def train():
     train_dataset = VOCDataset(
         root_dir="dataset/VOCdevkit",
         year="2012",
-        mode="train0"
+        mode="train0",
+        transform=get_train_transforms()
     )
 
     train_loader = DataLoader(
@@ -54,9 +55,14 @@ def train():
         momentum=config.MOMENTUM,
         weight_decay=config.WEIGHT_DECAY
     )
+    # optimizer = optim.Adam(
+    #     model.parameters(),
+    #     lr=config.LEARNING_RATE,
+    #     weight_decay=config.WEIGHT_DECAY
+    # )
 
     # Init LR scheduler
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10,20,30], gamma=0.5)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10,20,30], gamma=1.0)
     
     # Create tensorboard summary writer
     writer = SummaryWriter(f"runs/yolov1_{datetime.now().strftime('%Y-%m-%d_%H_%M_%S')}")

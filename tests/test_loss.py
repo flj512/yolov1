@@ -41,7 +41,7 @@ def test_loss_1():
     predict[1,4,5,25] = 1.0
     predict[1,5,5,4] = 0.49
     predict[1,3,0,9] = 0.58
-    predict[1,4,1,4] = 0.19
+    predict[1,3,0,4] = 0.19
 
     l11 = LAMBDA_COORD * (wh_error(0.2,0.3)+wh_error(0.3,0.4)+xy_error(0.5,0.45)+xy_error(0.5,0.43))
     l12 = (1.0-0.68)**2
