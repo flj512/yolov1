@@ -85,6 +85,8 @@ def train():
             # Backward pass
             loss.backward()
             if (batch_idx + 1) % config.PARAM_UPDATE_FREQ == 0:
+                # Gradient clipping
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                 optimizer.step()
                 optimizer.zero_grad()
             
@@ -142,6 +144,7 @@ def train():
                 'epoch': epoch,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
+                'lr_scheduler_dict': scheduler.state_dict(),
                 'loss': avg_loss,
             }, f"checkpoint_epoch_{epoch+1}.pth")
     

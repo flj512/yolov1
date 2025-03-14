@@ -8,6 +8,7 @@ from utils.utils import convert_cellboxes, non_max_suppression
 from config import *
 import time
 from datetime import datetime
+from utils.utils import add_padding
 
 class YOLOPredictor:
     def __init__(self, checkpoint_path, conf_threshold=0.5, nms_threshold=0.4):
@@ -30,7 +31,6 @@ class YOLOPredictor:
         
         # Transform for input images
         self.transform = transforms.Compose([
-            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                               std=[0.229, 0.224, 0.225])
@@ -42,19 +42,24 @@ class YOLOPredictor:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(img)
         
-        return self.transform(img).unsqueeze(0)
+        img, padding, _ = add_padding(img)
+        return self.transform(img).unsqueeze(0), padding
     
-    def process_predictions(self, predictions, orig_img_shape):
+    def process_predictions(self, predictions, orig_img_shape, padding):
         """Process raw predictions to get final bounding boxes"""
         predictions = convert_cellboxes(predictions)
         predictions = predictions.reshape(predictions.shape[0], -1, 6)  # (batch, S*S, 6)
         
         # Scale predictions back to original image size
         height, width = orig_img_shape[:2]
-        predictions[..., 2] = predictions[..., 2] * width
-        predictions[..., 3] = predictions[..., 3] * height
-        predictions[..., 4] = predictions[..., 4] * width
-        predictions[..., 5] = predictions[..., 5] * height
+        pad_left, pad_top, pad_right, pad_bottom = padding
+        effective_w = width + pad_left + pad_right
+        effective_h = height + pad_top + pad_bottom
+
+        predictions[..., 2] = predictions[..., 2] * effective_w - pad_left
+        predictions[..., 3] = predictions[..., 3] * effective_h - pad_top
+        predictions[..., 4] = predictions[..., 4] * effective_w
+        predictions[..., 5] = predictions[..., 5] * effective_h
         
         # Convert predictions to list of [class_pred, prob_score, x1, y1, x2, y2]
         bboxes = []
@@ -107,18 +112,24 @@ class YOLOPredictor:
         if isinstance(image_path, str):
             orig_img = cv2.imread(image_path)
             img = Image.open(image_path).convert("RGB")
-        else:
+        elif isinstance(image_path, Image.Image):
+            orig_img = np.array(image_path)
+            orig_img = cv2.cvtColor(orig_img, cv2.COLOR_RGB2BGR)
+            img = image_path
+        elif isinstance(image_path, np.ndarray):
             orig_img = image_path
             img = Image.fromarray(cv2.cvtColor(orig_img, cv2.COLOR_BGR2RGB))
+        else:
+            raise TypeError("Input image type not supported.")
         
-        input_tensor = self.preprocess_image(img)
+        input_tensor, padding = self.preprocess_image(img)
         
         # Get predictions
         with torch.no_grad():
             predictions = self.model(input_tensor.to(self.device))
         
         # Process predictions
-        boxes = self.process_predictions(predictions, orig_img.shape)
+        boxes = self.process_predictions(predictions, orig_img.shape, padding)
         
         # Draw boxes
         result_img = self.draw_boxes(orig_img.copy(), boxes)
@@ -191,13 +202,13 @@ class YOLOPredictor:
 def main():
     # Initialize predictor
     predictor = YOLOPredictor(
-        checkpoint_path="checkpoint_epoch_30.pth",
-        conf_threshold=0.7,
+        checkpoint_path="checkpoint_epoch_70.pth",
+        conf_threshold=0.4,
         nms_threshold=0.4
     )
     
     # Example usage for image
-    image_path = "dataset/VOCdevkit/VOC2012/JPEGImages/2009_001364.jpg"
+    image_path = "dataset/VOCdevkit/VOC2012/JPEGImages/2007_000256.jpg"
     result_img, boxes = predictor.predict_image(image_path, save_path="output.jpg")
     
     # Print detection results

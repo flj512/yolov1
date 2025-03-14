@@ -8,6 +8,7 @@ class YOLOLoss(nn.Module):
         self.grid_size = grid_size
         self.num_boxes = num_boxes
         self.num_classes = num_classes
+        self.mse = nn.MSELoss(reduction="sum")
         
     def compute_iou(self, box1, box2):
         """
@@ -87,7 +88,6 @@ class YOLOLoss(nn.Module):
         box_loss = self.mse(
             torch.flatten(box_predictions[..., :4], end_dim=-2),
             torch.flatten(box_targets[..., :4], end_dim=-2),
-            batch_size
         )
         
         # ==================== #
@@ -100,7 +100,6 @@ class YOLOLoss(nn.Module):
         object_loss = self.mse(
             torch.flatten(exists_box * pred_box),
             torch.flatten(exists_box * obj_target[..., 0:1]),
-            batch_size
         )
         
         # ======================= #
@@ -110,15 +109,13 @@ class YOLOLoss(nn.Module):
         no_object_loss = self.mse(
             torch.flatten((1 - exists_box) * box1_pred[..., 4:5]),
             torch.flatten((1 - exists_box) * obj_target[..., 0:1]),
-            batch_size
         )
         
         no_object_loss += self.mse(
             torch.flatten((1 - exists_box) * box2_pred[..., 4:5]),
             torch.flatten((1 - exists_box) * obj_target[..., 0:1]),
-            batch_size
         )
-        
+
         # ================== #
         #   FOR CLASS LOSS   #
         # ================== #
@@ -127,7 +124,6 @@ class YOLOLoss(nn.Module):
         class_loss = self.mse(
             torch.flatten(exists_box * class_pred, end_dim=-2),
             torch.flatten(exists_box * class_target, end_dim=-2),
-            batch_size
         )
         
         # ================== #
@@ -142,7 +138,4 @@ class YOLOLoss(nn.Module):
         
         loss_ratio = torch.tensor([l1.item(), l2.item(), l3.item(), l4.item()])/(loss.item() + 1e-6)
 
-        return loss, loss_ratio
-    
-    def mse(self, pred, target, batch_size):
-        return torch.sum((pred - target) ** 2)/batch_size
+        return loss/batch_size, loss_ratio

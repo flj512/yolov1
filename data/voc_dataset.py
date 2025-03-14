@@ -5,6 +5,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 from config import PASCAL_VOC_CLASSES, IMAGE_SIZE, GRID_SIZE
+from utils.utils import add_padding
 
 class VOCDataset(Dataset):
     def __init__(self, root_dir, year="2012", mode="train", transform=None):
@@ -25,26 +26,6 @@ class VOCDataset(Dataset):
             self.image_ids = [x.strip() for x in f.readlines()]
             
         self.class_to_idx = {cls: idx for idx, cls in enumerate(PASCAL_VOC_CLASSES)}
-        
-    def add_padding(self, img):
-        """Add padding to make image square while maintaining aspect ratio"""
-        w, h = img.size
-        dim_diff = abs(h - w)
-        
-        # Find padding dimensions
-        pad1, pad2 = dim_diff // 2, dim_diff - (dim_diff // 2)
-        
-        # Add padding
-        if h <= w:
-            padding = (0, pad1, 0, pad2)  # left, top, right, bottom
-        else:
-            padding = (pad1, 0, pad2, 0)
-        
-        # Add padding and resize
-        img = transforms.Pad(padding, fill=0)(img)  # Add padding with black
-        img = transforms.Resize((IMAGE_SIZE, IMAGE_SIZE))(img)
-        
-        return img, padding, (w, h)
 
     def adjust_boxes_for_padding(self, boxes, orig_size, padding):
         """
@@ -164,7 +145,7 @@ class VOCDataset(Dataset):
         orig_size = img.size  # Save original size
         
         # Add padding and get transform info
-        img, padding, orig_size = self.add_padding(img)
+        img, padding, orig_size = add_padding(img)
         
         # Load annotations
         annotation_path = os.path.join(self.annotations_dir, f"{image_id}.xml")
