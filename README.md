@@ -1,5 +1,5 @@
 # Train
-This repo use pytorch to train the yolov1 models.  
+This repo use pytorch to train the yolov1 model.  
 The code is usefull for understanding the origin paper as well as test how to train a model    
 and how the hyper parameters affect the traing process.  
 
@@ -30,7 +30,8 @@ One picture
 ```
 python3 inference.py
 ```
-The result will write to output.jpg.
+The result will write to output.jpg. 
+  
 Example:    
 ![Airplane](https://github.com/flj512/yolov1/blob/master/output.jpg)
 
