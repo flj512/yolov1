@@ -223,7 +223,7 @@ class YOLOPredictor:
 def main():
     # Initialize predictor
     predictor = YOLOPredictor(
-        checkpoint_path="checkpoint_epoch_70.pth", conf_threshold=0.4, nms_threshold=0.4
+        checkpoint_path="checkpoint_epoch_50.pth", conf_threshold=0.4, nms_threshold=0.4
     )
 
     # Example usage for image
