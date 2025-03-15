@@ -5,14 +5,13 @@ and how the hyper parameters affect the traing process.
 
 ## Python Env
 Tested Python Verson: 3.10.12  
-Torch Version: 2.5.1     
-Other dependencies: OpenCV, Numpy, PIL, TensorBoard  
+Envirentment: [requirements.txt](https://github.com/flj512/yolov1/blob/master/requirements.txt)
 
 ## Download VOC2012 dataset
 the following jupyter download the dataset and extra automatically.  
 
 ```
-voc_download.ipynb
+python3 voc_download.py
 ```
 
 ## Training
