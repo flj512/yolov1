@@ -8,7 +8,7 @@ Tested Python Verson: 3.10.12
 Envirentment: [requirements.txt](https://github.com/flj512/yolov1/blob/master/requirements.txt)
 
 ## Download VOC2012 dataset
-the following jupyter download the dataset and extra automatically.  
+the following command download the dataset and extra automatically.  
 
 ```
 python3 voc_download.py
