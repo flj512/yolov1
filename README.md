@@ -9,7 +9,7 @@ Torch Version: 2.5.1
 Other dependencies: OpenCV, Numpy, PIL, TensorBoard  
 
 ## Download VOC2012 dataset
-the following jupter will download the dataset and extra automatically.  
+the following jupyter download the dataset and extra automatically.  
 
 ```
 voc_download.ipynb
@@ -20,16 +20,21 @@ change values in config.py to do experiments
 ```
 python3 train.py
 ```
+it may success if the train loss and val loss decrease to around 4
+
+![Loss](https://github.com/flj512/yolov1/blob/master/loss.png)
+
 # Validation
 You can inference on one picture or multiple pictures    
-one picture    
+
+One picture    
 ```
 python3 inference.py
 ```
 Example:    
 ![Airplane](https://github.com/flj512/yolov1/blob/master/output.jpg)
 
-visulize inference result in jutper
+OR visualize inference results in jupyter
 ```
 vis_validation.ipynb
 ```
