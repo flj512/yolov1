@@ -71,7 +71,7 @@ class YOLOv1(nn.Module):
                 nn.LeakyReLU(0.1),
             )
         
-        self.full_input_depth = 512
+        self.full_input_depth = 1024
 
         # Detection layers
         self.conv_final = nn.Sequential(

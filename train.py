@@ -21,7 +21,7 @@ def train():
     train_dataset = VOCDataset(
         root_dir="dataset/VOCdevkit",
         year="2012",
-        mode="train0",
+        mode="train",
         transform=get_train_transforms()
     )
 
@@ -36,7 +36,7 @@ def train():
     val_dataset = VOCDataset(
         root_dir="dataset/VOCdevkit",
         year="2012",
-        mode="val0"
+        mode="val"
     )
 
     val_loader = DataLoader(
@@ -62,7 +62,7 @@ def train():
     # )
 
     # Init LR scheduler
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10,20,30], gamma=1.0)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60], gamma=0.1)
     
     # Create tensorboard summary writer
     writer = SummaryWriter(f"runs/yolov1_{datetime.now().strftime('%Y-%m-%d_%H_%M_%S')}")

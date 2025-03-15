@@ -17,7 +17,7 @@ NUM_CHANNELS = 3  # Input channels
 
 # Training Parameters
 LEARNING_RATE = 1e-3
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 PARAM_UPDATE_FREQ = 4 # the number of iterations to accumulate gradients before updating the model
 NUM_EPOCHS = 150
 WEIGHT_DECAY = 0.0005
@@ -28,4 +28,4 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Loss Parameters
 LAMBDA_COORD = 5
-LAMBDA_NOOBJ = 0.5
+LAMBDA_NOOBJ = 0.2
