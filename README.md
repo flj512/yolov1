@@ -30,6 +30,7 @@ One picture
 ```
 python3 inference.py
 ```
+The result will write to output.jpg.
 Example:    
 ![Airplane](https://github.com/flj512/yolov1/blob/master/output.jpg)
 

@@ -47,3 +47,6 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Loss Parameters
 LAMBDA_COORD = 5
 LAMBDA_NOOBJ = 0.2
+
+# Model Path used to do inference
+MODEL_PATH = "yolov1.pth"
